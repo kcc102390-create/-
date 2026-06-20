@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="내 재활루틴">
+<title>내 재활 루틴</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --card: #ffffff;
+    --border: #e5e2da;
+    --text: #2c2c2a;
+    --text-secondary: #6b6a64;
+    --text-tertiary: #9c9a93;
+    --teal-bg: #e1f5ee; --teal-text: #085041;
+    --blue-bg: #e6f1fb; --blue-text: #0c447c;
+    --coral-bg: #faece7; --coral-text: #712b13;
+    --warn-bg: #faeeda; --warn-text: #633806;
+    --info-bg: #e6f1fb; --info-text: #0c447c;
+    --success: #27500a;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --card: #262624;
+      --border: #3a3936;
+      --text: #f1efe8;
+      --text-secondary: #b4b2a9;
+      --text-tertiary: #888780;
+      --teal-bg: #085041; --teal-text: #9fe1cb;
+      --blue-bg: #0c447c; --blue-text: #b5d4f4;
+      --coral-bg: #712b13; --coral-text: #f5c4b3;
+      --warn-bg: #633806; --warn-text: #fac775;
+      --info-bg: #0c447c; --info-text: #b5d4f4;
+      --success: #97c459;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.6;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: calc(env(safe-area-inset-top) + 14px) 16px 10px;
+    border-bottom: 0.5px solid var(--border);
+    z-index: 10;
+  }
+  .topbar h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .tab {
+    flex-shrink: 0;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .tab.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+  .content { padding: 16px; max-width: 600px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .notice {
+    background: var(--warn-bg);
+    color: var(--warn-text);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 8px;
+  }
+  .notice.info { background: var(--info-bg); color: var(--info-text); }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 20px 0 8px;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+  }
+  .badge.teal { background: var(--teal-bg); color: var(--teal-text); }
+  .badge.blue { background: var(--blue-bg); color: var(--blue-text); }
+  .badge.coral { background: var(--coral-bg); color: var(--coral-text); }
+
+  .section-title p { margin: 0; font-size: 15px; font-weight: 600; }
+  .section-sub { font-size: 12px; color: var(--text-secondary); margin: 0 0 10px; }
+
+  .item {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item input[type=checkbox] {
+    width: 19px;
+    height: 19px;
+    margin: 2px 0 0;
+    accent-color: var(--success);
+    flex-shrink: 0;
+  }
+  .item-name { font-size: 14px; font-weight: 600; margin: 0; }
+  .item-detail { font-size: 12.5px; color: var(--text-secondary); margin: 4px 0 0; }
+  .item-risk { font-size: 12px; color: var(--warn-text); margin: 4px 0 0; }
+  .item.checked .item-name { color: var(--text-secondary); text-decoration: line-through; }
+
+  .day-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .day-time { font-size: 12px; color: var(--text-tertiary); font-weight: 600; margin: 0 0 2px; }
+  .day-title { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+  .day-note { font-size: 12px; color: var(--text-secondary); margin: 0 0 8px; }
+  .day-list { font-size: 13px; color: var(--text); margin: 0; padding-left: 18px; }
+  .day-list li { margin-bottom: 4px; }
+
+  .pain-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+  }
+  .pain-row { margin-bottom: 16px; }
+  .pain-row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .pain-row-head span:first-child { font-size: 13px; font-weight: 600; }
+  .pain-level {
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+  }
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--text);
+  }
+  textarea {
+    width: 100%;
+    min-height: 60px;
+    font-size: 13px;
+    padding: 8px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    resize: vertical;
+  }
+  .save-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 11px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--text);
+    color: var(--bg);
+  }
+  .save-btn:active { opacity: 0.7; }
+
+  .history-entry {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+  }
+  .history-date { font-size: 11px; color: var(--text-tertiary); margin: 0 0 6px; }
+  .history-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .history-pill {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+  }
+  .history-memo { font-size: 12px; color: var(--text-secondary); margin: 0; }
+
+  .progress-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 13px;
+    padding: 20px 0;
+  }
+
+  .lr-grid {
+    display: grid;
+    gap: 10px;
+  }
+  .lr-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+  }
+  .lr-head { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+  .lr-head-title { font-size: 14px; font-weight: 600; margin: 0; }
+  .lr-sub { font-size: 12px; color: var(--text-secondary); margin: 0 0 10px; }
+  .lr-item { border-top: 0.5px solid var(--border); padding-top: 8px; margin-top: 8px; }
+  .lr-item:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+  .lr-item-name { font-size: 13px; font-weight: 600; margin: 0; }
+  .lr-item-detail { font-size: 12px; color: var(--text-secondary); margin: 4px 0 0; }
+
+  .illus {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    margin-bottom: 16px;
+    color: var(--text);
+    --ig: var(--bg);
+    --is: var(--border);
+    --ib: var(--blue-bg);
+    --ibs: var(--blue-text);
+    --ibt: var(--blue-text);
+    --ic: var(--coral-bg);
+    --ics: var(--coral-text);
+    --ict: var(--coral-text);
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>내 재활 루틴</h1>
+  <div class="tabs">
+    <button class="tab active" data-tab="daily">하루 일정</button>
+    <button class="tab" data-tab="glute">둔근 활성화</button>
+    <button class="tab" data-tab="breath">호흡</button>
+    <button class="tab" data-tab="lr">좌우 보정</button>
+    <button class="tab" data-tab="pain">통증 일지</button>
+  </div>
+</div>
+
+<div class="content">
+
+<div class="notice">
+  <strong style="font-weight:600;">!</strong>
+  <span>양쪽 고관절 이형성증이 있어 외전 및 큰 가동범위 동작은 모두 제외했습니다. 통증이 느껴지면 즉시 멈추세요.</span>
+</div>
+
+<div class="panel active" id="panel-daily">
+  <div class="day-card">
+    <p class="day-time">아침, 기상 후 · 약 8분</p>
+    <p class="day-title">호흡 리셋</p>
+    <p class="day-note">누워서 횡격막 호흡으로 하루 시작</p>
+    <ul class="day-list">
+      <li>손 올리고 배 호흡 느끼기 (5분)</li>
+      <li>쉬익 소리내며 내쉬기 (1분 x 3회)</li>
+    </ul>
+  </div>
+  <div class="day-card">
+    <p class="day-time">아침 또는 오전 · 약 10분</p>
+    <p class="day-title">둔근 활성화 (1단계부터)</p>
+    <p class="day-note">허리에 힘 들어가는지 항상 체크</p>
+    <ul class="day-list">
+      <li>엉덩이 손으로 짚고 조이기 (10회)</li>
+      <li>엎드려서 한쪽 둔근 조이기 (좌우 10회씩)</li>
+      <li>며칠 후 감각 익으면 2단계로</li>
+    </ul>
+  </div>
+  <div class="day-card">
+    <p class="day-time">오후, 1시간마다 · 1분씩</p>
+    <p class="day-title">책상 호흡 체크인</p>
+    <p class="day-note">알람 맞추고 가슴/어깨 힘 빼기</p>
+    <ul class="day-list">
+      <li>1분간 배호흡으로 전환</li>
+    </ul>
+  </div>
+  <div class="day-card">
+    <p class="day-time">저녁, 운동 시간 · 약 20분</p>
+    <p class="day-title">부위별 가동성 + 안정화 + 좌우 보정</p>
+    <p class="day-note">통증 있으면 그 동작만 빼고 진행</p>
+    <ul class="day-list">
+      <li>목/어깨: 턱당기기, 흉추회전, 가슴열기, Y-T-W (8분)</li>
+      <li>골반/허리: 데드버그, 버드독, 글루트브릿지 (7분)</li>
+      <li>좌우 보정: 우측 고관절 굴곡근 이완 / 좌측 고관절 굴곡근 활성화 (3분)</li>
+      <li>발목/무릎: 발목 알파벳, 배굴 스트레칭, 발가락 그립 (5분)</li>
+    </ul>
+  </div>
+  <div class="day-card">
+    <p class="day-time">자기 전 · 약 5분</p>
+    <p class="day-title">호흡 마무리</p>
+    <p class="day-note">하루 마무리도 호흡으로</p>
+    <ul class="day-list">
+      <li>손 올리고 배 호흡 (3분)</li>
+      <li>복식호흡 + 코어 활성화 (2분)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="panel" id="panel-glute">
+  <div class="notice info">
+    <strong style="font-weight:600;">i</strong>
+    <span>단계를 순서대로. 다음 단계로 넘어가기 전 허리 대신 엉덩이가 느껴지는지 확인하세요.</span>
+  </div>
+
+  <div class="illus">
+    <svg width="100%" viewBox="0 0 680 460" role="img"><title>둔근 활성화 1단계와 2단계 동작 자세</title><desc>서서 엉덩이 짚고 조이기, 엎드려 둔근 조이기, 네발기기 힙 익스텐션 세 가지 자세</desc>
+    <text x="115" y="32" text-anchor="middle" font-size="14" font-weight="500" fill="currentColor">1. 서서 짚고 조이기</text>
+    <ellipse cx="115" cy="370" rx="50" ry="8" fill="var(--ig)" stroke="var(--is)" stroke-width="0.5"/>
+    <circle cx="115" cy="90" r="20" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M115 110 L115 230" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M115 140 Q90 150 78 168 L70 188" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M115 140 Q140 150 152 168 L160 188" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <ellipse cx="115" cy="225" rx="34" ry="26" fill="var(--ic)" stroke="var(--ics)" stroke-width="0.5"/>
+    <path d="M95 245 L88 365" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M135 245 L142 365" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <rect x="62" y="195" width="26" height="36" rx="8" fill="var(--ib)" stroke="var(--ibs)" stroke-width="0.5"/>
+    <rect x="142" y="195" width="26" height="36" rx="8" fill="var(--ib)" stroke="var(--ibs)" stroke-width="0.5"/>
+    <text x="115" y="288" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">손으로 짚고</text>
+    <text x="115" y="303" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">엉덩이만 조이기</text>
+    <text x="115" y="425" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">허리는 그대로, 10회</text>
+
+    <line x1="240" y1="40" x2="240" y2="420" stroke="currentColor" stroke-width="0.5" opacity="0.15"/>
+
+    <text x="370" y="32" text-anchor="middle" font-size="14" font-weight="500" fill="currentColor">2. 엎드려 한쪽 조이기</text>
+    <rect x="290" y="220" width="160" height="14" rx="6" fill="var(--ig)" stroke="var(--is)" stroke-width="0.5"/>
+    <circle cx="300" cy="200" r="16" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M316 205 Q340 212 360 215" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <ellipse cx="375" cy="220" rx="34" ry="20" fill="var(--ic)" stroke="var(--ics)" stroke-width="0.5"/>
+    <path d="M405 222 Q435 226 445 235 L460 245" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M300 216 Q280 222 268 232" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="375" y="140" text-anchor="middle" font-size="14" font-weight="500" fill="currentColor">한쪽 둔근만 조이기</text>
+    <text x="375" y="158" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">허리 안 움직이게</text>
+    <line x1="375" y1="220" x2="375" y2="165" stroke="currentColor" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.5"/>
+    <text x="370" y="280" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">좌우 10회씩</text>
+
+    <line x1="500" y1="40" x2="500" y2="420" stroke="currentColor" stroke-width="0.5" opacity="0.15"/>
+
+    <text x="585" y="32" text-anchor="middle" font-size="14" font-weight="500" fill="currentColor">3. 네발기기 힙 익스텐션</text>
+    <rect x="535" y="290" width="100" height="12" rx="6" fill="var(--ig)" stroke="var(--is)" stroke-width="0.5"/>
+    <circle cx="545" cy="270" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M558 274 Q585 278 605 282" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <ellipse cx="615" cy="284" rx="26" ry="16" fill="var(--ic)" stroke="var(--ics)" stroke-width="0.5"/>
+    <line x1="555" y1="280" x2="555" y2="300" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="595" y1="296" x2="595" y2="316" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M635 286 Q655 270 668 250" fill="none" stroke="#D85A30" stroke-width="2" stroke-linecap="round"/>
+    <path d="M635 290 Q645 312 642 335" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <text x="600" y="370" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">한쪽 발을 천장 쪽으로</text>
+    <text x="600" y="385" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">살짝만, 좌우 8회씩</text>
+    </svg>
+  </div>
+
+  <div class="section-title"><span class="badge teal">1단계</span><p>둔근 인지하기</p></div>
+  <p class="section-sub">먼저 둔근이 뭔지 느끼기</p>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">엉덩이 손으로 짚고 조이기</p><p class="item-detail">서서 양손을 엉덩이에 올리고, 허리는 그대로 둔 채 엉덩이 근육만 꽉 조였다 풀기. 10회</p></div></div>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">엎드려서 한쪽 둔근 조이기</p><p class="item-detail">배 깔고 엎드려서 무릎은 편 채로 한쪽 엉덩이만 꽉 조였다 풀기. 좌우 10회씩</p></div></div>
+
+  <div class="section-title"><span class="badge blue">2단계</span><p>저강도 분리 동작</p></div>
+  <p class="section-sub">허리 개입 없이 둔근만 분리해서 쓰기</p>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">벽 짚고 힙 익스텐션</p><p class="item-detail">벽 짚고 서서 무릎 살짝 굽힌 채 다리를 뒤로 살짝만 들기. 좌우 8회씩</p></div></div>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">베개 끼고 브릿지</p><p class="item-detail">무릎 사이 베개 끼고 엉덩이를 낮게만 들어올리기. 10회</p></div></div>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">쿼드러페드 힙 익스텐션</p><p class="item-detail">네발기기 자세에서 한쪽 발바닥을 천장으로 살짝 들기. 좌우 8회씩</p></div></div>
+
+  <div class="section-title"><span class="badge coral">3단계</span><p>통합 동작</p></div>
+  <p class="section-sub">일상 움직임에 둔근 사용 연결</p>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">의자 앉았다 일어서기</p><p class="item-detail">일어설 때 엉덩이로 미는 느낌 의식하며 천천히. 8회 x 2세트</p></div></div>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">한 발 살짝 들고 균형잡기</p><p class="item-detail">한쪽 다리로 서서 반대 무릎 살짝 들고 10초 버티기. 좌우 3회씩</p></div></div>
+</div>
+
+<div class="panel" id="panel-breath">
+  <div class="notice info">
+    <strong style="font-weight:600;">i</strong>
+    <span>20년 된 패턴이라 며칠로 안 바뀌어요. 매일 짧게, 누운 자세부터 천천히.</span>
+  </div>
+
+  <div class="illus">
+    <svg width="100%" viewBox="0 0 680 360" role="img"><title>횡격막 호흡 연습 자세</title><desc>누운 자세에서 한 손은 가슴에, 한 손은 배에 올리고 호흡 시 배만 움직이는 모습</desc>
+    <line x1="40" y1="300" x2="640" y2="300" stroke="currentColor" stroke-width="1" opacity="0.2"/>
+    <ellipse cx="330" cy="295" rx="230" ry="14" fill="var(--ig)" stroke="var(--is)" stroke-width="0.5"/>
+    <ellipse cx="170" cy="240" rx="34" ry="30" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M196 250 Q260 248 300 252 Q380 258 440 250 Q480 246 500 240" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <ellipse cx="280" cy="252" rx="42" ry="26" fill="var(--ib)" stroke="var(--ibs)" stroke-width="0.5" opacity="0.85"/>
+    <ellipse cx="400" cy="262" rx="58" ry="34" fill="var(--ic)" stroke="var(--ics)" stroke-width="0.5" opacity="0.9"/>
+    <path d="M500 240 Q540 244 560 260 Q575 272 578 285 L600 295" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M196 250 Q160 252 140 262 Q125 270 120 282 L98 292" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <rect x="262" y="200" width="36" height="46" rx="10" fill="var(--ib)" stroke="var(--ibs)" stroke-width="0.5"/>
+    <text x="280" y="227" text-anchor="middle" dominant-baseline="central" font-size="12" fill="var(--ibt)">손</text>
+    <rect x="376" y="208" width="48" height="50" rx="12" fill="var(--ic)" stroke="var(--ics)" stroke-width="0.5"/>
+    <text x="400" y="237" text-anchor="middle" dominant-baseline="central" font-size="12" fill="var(--ict)">손</text>
+    <line x1="280" y1="195" x2="280" y2="120" stroke="currentColor" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.5"/>
+    <circle cx="280" cy="195" r="2" fill="currentColor"/>
+    <text x="280" y="100" text-anchor="middle" font-size="14" font-weight="500" fill="currentColor">가슴 위 손</text>
+    <text x="280" y="118" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">움직이지 않게 유지</text>
+    <line x1="400" y1="200" x2="400" y2="150" stroke="currentColor" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.5"/>
+    <circle cx="400" cy="200" r="2" fill="currentColor"/>
+    <text x="490" y="148" text-anchor="middle" font-size="14" font-weight="500" fill="currentColor">배 위 손</text>
+    <text x="490" y="166" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">들이쉴 때 위로 올라옴</text>
+    <line x1="400" y1="262" x2="400" y2="230" stroke="#D85A30" stroke-width="2" opacity="0.8"/>
+    <text x="340" y="345" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">코로 천천히 들이쉬며 배만 부풀리기, 5분 반복</text>
+    </svg>
+  </div>
+
+  <div class="section-title"><span class="badge teal">1단계</span><p>누워서 횡격막 느끼기</p></div>
+  <p class="section-sub">배가 움직이는 감각 되찾기</p>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">손 올리고 배 호흡 느끼기</p><p class="item-detail">누워서 한 손은 가슴, 한 손은 배에. 들이쉴 때 배 손만 올라오게. 5분</p></div></div>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">쉬익 소리내며 내쉬기</p><p class="item-detail">코로 들이쉬고 입으로 "쉬익" 길게 내쉬기. 1분 x 5회</p></div></div>
+
+  <div class="section-title"><span class="badge blue">2단계</span><p>배 힘 빼는 연습</p></div>
+  <p class="section-sub">습관적으로 조이던 복부 긴장 풀기</p>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">의식적으로 배 힘 빼고 호흡</p><p class="item-detail">배 조이고 있다가 의도적으로 풀고 3번 호흡. 하루 여러 번</p><p class="item-risk">풀었을 때 불안하면 짧게부터</p></div></div>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">벽에 등 대고 호흡</p><p class="item-detail">벽에 등/뒤통수 대고 서서 어깨 내린 채 배호흡. 2분</p></div></div>
+
+  <div class="section-title"><span class="badge coral">3단계</span><p>일상에 적용하기</p></div>
+  <p class="section-sub">앉아있거나 움직일 때도 유지</p>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">책상에 앉아 1분 체크인</p><p class="item-detail">한 시간마다 가슴/어깨 힘 빼고 배호흡 전환</p></div></div>
+  <div class="item" onclick="toggleItem(this)"><input type="checkbox"><div><p class="item-name">걸을 때 호흡 인지하기</p><p class="item-detail">걷는 중 배가 움직이는지, 어깨가 들리지 않는지 체크</p></div></div>
+</div>
+
+<div class="panel" id="panel-lr">
+  <div class="notice">
+    <strong style="font-weight:600;">!</strong>
+    <span>우측 전방경사 + 양쪽 고관절 이형성증, 좌측 후방경사 + 좌측 발목 부상. 좌우를 같은 비중으로 하지 말고 다르게 적용하세요.</span>
+  </div>
+
+  <div class="illus">
+    <svg width="100%" viewBox="0 0 680 420" role="img"><title>우측 전방경사와 좌측 후방경사에 맞춘 좌우 다른 보정 스트레칭 자세</title><desc>우측은 무릎 꿇고 골반 밀기와 무릎 끌어안기, 좌측은 누워서 무릎 들어올리기와 햄스트링 스트레칭 자세</desc>
+    <rect x="40" y="20" width="290" height="26" rx="8" fill="var(--ic)" stroke="var(--ics)" stroke-width="0.5"/>
+    <text x="185" y="33" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="var(--ict)">우측 — 고관절 굴곡근 이완</text>
+
+    <ellipse cx="120" cy="280" rx="60" ry="10" fill="var(--ig)" stroke="var(--is)" stroke-width="0.5" opacity="0.5"/>
+    <circle cx="100" cy="120" r="16" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M100 136 L100 195" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <ellipse cx="100" cy="200" rx="24" ry="20" fill="var(--ic)" stroke="var(--ics)" stroke-width="0.5"/>
+    <line x1="95" y1="218" x2="95" y2="270" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="95" y1="270" x2="75" y2="280" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M115 215 Q150 220 175 230 L220 240 L225 280" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M105 200 Q70 195 50 185 L35 160" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="100" y1="200" x2="135" y2="180" stroke="#D85A30" stroke-width="2" opacity="0.85"/>
+    <text x="100" y="335" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">무릎 꿇고 골반 살짝 밀기</text>
+    <text x="100" y="350" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">작은 범위로, 30초</text>
+
+    <line x1="350" y1="20" x2="350" y2="400" stroke="currentColor" stroke-width="0.5" opacity="0.15"/>
+
+    <ellipse cx="280" cy="280" rx="70" ry="10" fill="var(--ig)" stroke="var(--is)" stroke-width="0.5" opacity="0.5"/>
+    <circle cx="240" cy="240" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="252" y="245" width="100" height="28" rx="14" fill="var(--ic)" stroke="var(--ics)" stroke-width="0.5"/>
+    <line x1="252" y1="259" x2="220" y2="270" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="220" y1="270" x2="200" y2="290" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M340 255 Q330 230 318 215 Q310 205 300 200" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="300" cy="195" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <line x1="352" y1="259" x2="380" y2="280" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="380" y1="280" x2="395" y2="295" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="300" y1="220" x2="300" y2="180" stroke="#D85A30" stroke-width="2" opacity="0.85"/>
+    <text x="290" y="335" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">누워서 무릎 끌어안기</text>
+    <text x="290" y="350" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">통증 없는 범위까지, 30초</text>
+
+    <rect x="350" y="20" width="290" height="26" rx="8" fill="var(--ib)" stroke="var(--ibs)" stroke-width="0.5"/>
+    <text x="495" y="33" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="var(--ibt)">좌측 — 고관절 굴곡근 활성화</text>
+
+    <ellipse cx="450" cy="280" rx="70" ry="10" fill="var(--ig)" stroke="var(--is)" stroke-width="0.5" opacity="0.5"/>
+    <circle cx="400" cy="240" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="412" y="245" width="100" height="28" rx="14" fill="var(--ib)" stroke="var(--ibs)" stroke-width="0.5"/>
+    <line x1="412" y1="259" x2="380" y2="270" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="380" y1="270" x2="360" y2="290" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M500 255 Q505 230 500 210 Q497 198 488 188" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="485" cy="182" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <line x1="512" y1="259" x2="545" y2="270" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="545" y1="270" x2="565" y2="280" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="495" y1="215" x2="495" y2="170" stroke="#0C447C" stroke-width="2" opacity="0.85"/>
+    <text x="470" y="335" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">누워서 무릎 들어올리기</text>
+    <text x="470" y="350" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">8회</text>
+
+    <circle cx="585" cy="240" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="597" y="245" width="50" height="26" rx="13" fill="var(--ib)" stroke="var(--ibs)" stroke-width="0.5"/>
+    <path d="M647 250 Q625 220 615 195 L615 160" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="597" y1="259" x2="565" y2="270" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="610" y="385" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">햄스트링 이완, 30초</text>
+    </svg>
+  </div>
+
+  <div class="lr-grid">
+    <div class="lr-card">
+      <div class="lr-head"><span class="badge coral">우측</span><p class="lr-head-title">전방경사 + 양측 이형성증</p></div>
+      <p class="lr-sub">고관절 굴곡근 이완 중심, 둔근은 보수적으로</p>
+      <div class="lr-item"><p class="lr-item-name">무릎 꿇고 골반 살짝 밀기</p><p class="lr-item-detail">한쪽 무릎 꿇고 반대 발 앞으로, 골반만 살짝 앞으로. 큰 런지는 피하고 작게. 30초</p></div>
+      <div class="lr-item"><p class="lr-item-name">누워서 무릎 끌어안기</p><p class="lr-item-detail">우측 무릎을 가슴 쪽으로 부드럽게. 통증 없는 범위까지만. 30초</p></div>
+      <div class="lr-item"><p class="lr-item-name">둔근 브릿지 시 체크</p><p class="lr-item-detail">우측은 범위를 좌측보다 더 작게. 허리 휘는 느낌 들면 바로 멈추기</p></div>
+    </div>
+    <div class="lr-card">
+      <div class="lr-head"><span class="badge blue">좌측</span><p class="lr-head-title">후방경사 + 발목 부상 + 양측 이형성증</p></div>
+      <p class="lr-sub">고관절 굴곡근 활성화, 둔근/햄스트링은 이완 중심</p>
+      <div class="lr-item"><p class="lr-item-name">누워서 무릎 들어올리기</p><p class="lr-item-detail">좌측 무릎을 천천히 가슴 쪽으로. 8회</p></div>
+      <div class="lr-item"><p class="lr-item-name">햄스트링 이완 스트레칭</p><p class="lr-item-detail">수건으로 다리 받쳐 천천히 펴기. 체중 안 실어서 발목 부담 없음. 30초</p></div>
+      <div class="lr-item"><p class="lr-item-name">둔근 브릿지 시 체크</p><p class="lr-item-detail">좌측은 횟수/강도 욕심내지 않기. 이완 비중을 높게</p></div>
+    </div>
+  </div>
+  <div class="notice" style="margin-top:14px;">
+    <strong style="font-weight:600;">!</strong>
+    <span>양쪽 모두 이형성증이 있으므로 외전 및 큰 가동범위 동작은 좌우 모두 제외. 클램쉘 등은 양쪽 다 범위를 작게 유지하세요.</span>
+  </div>
+</div>
+
+<div class="panel" id="panel-pain">
+  <div class="pain-card">
+    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;" id="today-date"></p>
+    <div class="pain-row">
+      <div class="pain-row-head"><span>목/어깨</span><span class="pain-level" id="badge-neck" style="background:var(--blue-bg); color:var(--blue-text);">0</span></div>
+      <input type="range" min="0" max="10" step="1" value="0" id="slider-neck">
+    </div>
+    <div class="pain-row">
+      <div class="pain-row-head"><span>골반/허리</span><span class="pain-level" id="badge-pelvis" style="background:var(--teal-bg); color:var(--teal-text);">0</span></div>
+      <input type="range" min="0" max="10" step="1" value="0" id="slider-pelvis">
+    </div>
+    <div class="pain-row">
+      <div class="pain-row-head"><span>발목/무릎</span><span class="pain-level" id="badge-ankle" style="background:var(--coral-bg); color:var(--coral-text);">0</span></div>
+      <input type="range" min="0" max="10" step="1" value="0" id="slider-ankle">
+    </div>
+    <p style="font-size:13px; font-weight:600; margin:12px 0 6px;">메모</p>
+    <textarea id="memo-input" placeholder="예: 둔근 브릿지 할 때 허리에 힘 들어감"></textarea>
+    <button class="save-btn" onclick="saveEntry()">오늘 기록 저장</button>
+  </div>
+
+  <div class="progress-bar"><span>최근 기록</span></div>
+  <div id="history"></div>
+</div>
+
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+function toggleItem(el) {
+  const checkbox = el.querySelector('input[type=checkbox]');
+  checkbox.checked = !checkbox.checked;
+  el.classList.toggle('checked', checkbox.checked);
+}
+
+const today = new Date();
+document.getElementById('today-date').textContent = today.getFullYear() + '.' + (today.getMonth()+1) + '.' + today.getDate() + ' 기록';
+
+['neck','pelvis','ankle'].forEach(key => {
+  document.getElementById('slider-' + key).addEventListener('input', e => {
+    document.getElementById('badge-' + key).textContent = e.target.value;
+  });
+});
+
+function loadEntries() {
+  try {
+    const raw = localStorage.getItem('pain_entries');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+function saveEntries(entries) {
+  localStorage.setItem('pain_entries', JSON.stringify(entries));
+}
+
+function saveEntry() {
+  const dateKey = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  const entry = {
+    date: dateKey,
+    neck: parseInt(document.getElementById('slider-neck').value),
+    pelvis: parseInt(document.getElementById('slider-pelvis').value),
+    ankle: parseInt(document.getElementById('slider-ankle').value),
+    memo: document.getElementById('memo-input').value
+  };
+  let entries = loadEntries();
+  entries = entries.filter(e => e.date !== dateKey);
+  entries.push(entry);
+  saveEntries(entries);
+  renderHistory();
+}
+
+function renderHistory() {
+  const entries = loadEntries().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 14);
+  const container = document.getElementById('history');
+  if (entries.length === 0) {
+    container.innerHTML = '<p class="empty-state">아직 기록이 없습니다. 오늘부터 시작해보세요.</p>';
+    return;
+  }
+  container.innerHTML = entries.map(e => `
+    <div class="history-entry">
+      <p class="history-date">${e.date}</p>
+      <div class="history-pills">
+        <span class="history-pill" style="background:var(--blue-bg); color:var(--blue-text);">목/어깨 ${e.neck}</span>
+        <span class="history-pill" style="background:var(--teal-bg); color:var(--teal-text);">골반/허리 ${e.pelvis}</span>
+        <span class="history-pill" style="background:var(--coral-bg); color:var(--coral-text);">발목/무릎 ${e.ankle}</span>
+      </div>
+      ${e.memo ? `<p class="history-memo">${e.memo}</p>` : ''}
+    </div>
+  `).join('');
+}
+
+renderHistory();
+</script>
+
+</body>
+</html>
